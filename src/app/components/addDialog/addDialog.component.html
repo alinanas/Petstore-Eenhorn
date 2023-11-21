@@ -1,0 +1,28 @@
+<h1 mat-dialog-title *ngIf="!data.name">Add a new pet</h1>
+<h1 mat-dialog-title *ngIf="data.name">Edit pet data</h1>
+<div mat-dialog-content>
+  <mat-form-field>
+    <mat-label>Pet Name</mat-label>
+    <input matInput [(ngModel)]="data.name" required>
+  </mat-form-field>
+</div>
+<div mat-dialog-content>
+  <mat-form-field class="status-dropdown">
+		<mat-label>Selected status</mat-label>
+		<mat-select [(ngModel)]="data.status">
+			@for (status of statuses; track status) {
+				<mat-option [value]="status">{{status}}</mat-option>
+			}
+		</mat-select>
+	</mat-form-field>
+</div>
+<div mat-dialog-content>
+  <mat-form-field>
+    <mat-label>Photo Link</mat-label>
+    <input matInput [(ngModel)]="data.photoUrls">
+  </mat-form-field>
+</div>
+<div mat-dialog-actions>
+  <button mat-button (click)="onNoClick()">No Thanks</button>
+  <button mat-button [mat-dialog-close]="data" cdkFocusInitial>Ok</button>
+</div>
