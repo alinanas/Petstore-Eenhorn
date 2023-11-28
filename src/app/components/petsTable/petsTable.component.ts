@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { Pet } from '../../types/Pet';
@@ -13,6 +13,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatDialog } from '@angular/material/dialog';
 import { AddPetDialog } from '../addDialog/addDialog.component';
 import { STATUSES } from '../../constants';
+import { Subject, map } from 'rxjs';
 
 
 @Component({
@@ -32,7 +33,8 @@ import { STATUSES } from '../../constants';
   styleUrls: ['petsTable.component.css'],
 })
 
-export class PetsTable  implements OnInit {
+export class PetsTable  implements OnInit, OnDestroy {
+  private ngUnsubscribe = new Subject<void>();
   displayedColumns: string[] = ['photoUrls', 'name', 'status', 'category', 'action'];
   dataSource = new MatTableDataSource<Pet>([]);
   isLoading = true;
@@ -50,21 +52,29 @@ export class PetsTable  implements OnInit {
     private apiService: PetApiService,
     private _liveAnnouncer: LiveAnnouncer,
     private dialog: MatDialog) { }
-
+  
   ngOnInit() {
     this.getPetList();
   }
 
+  ngOnDestroy(): void {
+    this.ngUnsubscribe.next();
+    this.ngUnsubscribe.complete();
+  }
+
   getPetList() {
     this.apiService.get<Pet[]>(`findByStatus?status=${this.defaultStatus}`)
-    .subscribe({
-      next: (pets: Pet[]) => {
+    .pipe(
+      map((pets: Pet[]) => {
         this.dataSource = new MatTableDataSource(pets);
         this.dataSource.paginator = this.paginator;
         this.dataSource.sort = this.sort;
         this.isLoading = false;
         this.total = pets.length;
-      },
+      })
+    )
+    .subscribe({
+      next: pets => console.log(pets),
       error: (error: Error) => console.error('Error fetching pets:', error)
     });
   }
